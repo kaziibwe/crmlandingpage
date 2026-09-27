@@ -121,10 +121,11 @@
         .reveal[data-delay="3"] { transition-delay: .24s; }
 
         /* ---------- Marquee ---------- */
-        .marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
-        .marquee-track { display: flex; gap: 1rem; width: max-content; animation: marquee 38s linear infinite; }
-        .marquee:hover .marquee-track { animation-play-state: paused; }
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .marquee { overflow: hidden; cursor: grab; touch-action: pan-y; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+        .marquee.dragging { cursor: grabbing; }
+        .marquee:focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; border-radius: .75rem; }
+        .marquee-track { display: flex; width: max-content; will-change: transform; }
+        .marquee-set { display: flex; gap: 1rem; align-items: center; padding-right: 1rem; }
 
         /* ---------- Pipeline ---------- */
         .stage-card { transition: transform .25s ease, box-shadow .25s ease; }
@@ -200,15 +201,115 @@
         @keyframes caret { 50% { opacity: 0; } }
         @media (prefers-reduced-motion: reduce) { .type-cursor { display: none; } }
 
+        /* ---------- Stacked sticky scroll experience (all screens) ---------- */
+        /* One behavior everywhere: each card fills the viewport below the nav and pins;
+           its content scrolls INSIDE the card; when you're done, the next card slides
+           over. Height clamps guarantee no card is ever taller than the visible area. */
+        .stack { --stack-top: 76px; padding: 0 .75rem 3rem; }
+        .stack > section {
+            position: sticky;
+            top: var(--stack-top);
+            min-height: calc(100vh - var(--stack-top) - 24px);
+            min-height: calc(100dvh - var(--stack-top) - 24px);
+            max-height: calc(100vh - var(--stack-top) - 16px);
+            max-height: calc(100dvh - var(--stack-top) - 16px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            justify-content: safe center;
+            overflow: hidden;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(15, 23, 42, .08);
+            box-shadow: 0 -14px 40px -26px rgba(15, 23, 42, .28);
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .stack > section:hover { scrollbar-color: rgba(100, 116, 139, .35) transparent; }
+        .stack > section::-webkit-scrollbar { width: 5px; }
+        .stack > section::-webkit-scrollbar-thumb { background: transparent; border-radius: 99px; }
+        .stack > section:hover::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .3); }
+        .dark .stack > section {
+            border-color: rgba(148, 163, 184, .12);
+            box-shadow: 0 -14px 40px -26px rgba(0, 0, 0, .65);
+        }
+        .dark .stack > section:hover { scrollbar-color: rgba(71, 85, 105, .5) transparent; }
+        .dark .stack > section:hover::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, .45); }
+        /* Inner scrolling activates ONLY while the card is pinned (class set by JS):
+           before that, page scroll lifts the card; after, wheel/touch scrolls the content. */
+        .stack > section.is-pinned { overflow-y: auto; }
+        .stack > section:nth-child(1) { z-index: 1; background: #fff; }
+        .stack > section:nth-child(2) { z-index: 2; background: #f6f8fd; }
+        .stack > section:nth-child(3) { z-index: 3; background: #fff; }
+        .stack > section:nth-child(4) { z-index: 4; background: #f6f8fd; }
+        .stack > section:nth-child(5) { z-index: 5; background: #fff; }
+        .stack > section:nth-child(6) { z-index: 6; background: #f6f8fd; }
+        .stack > section:nth-child(7) { z-index: 7; background: #fff; }
+        .stack > section:nth-child(8) { z-index: 8; background: #f6f8fd; }
+        .dark .stack > section:nth-child(1) { background: #0d1526; }
+        .dark .stack > section:nth-child(2) { background: #0b1120; }
+        .dark .stack > section:nth-child(3) { background: #0d1526; }
+        .dark .stack > section:nth-child(4) { background: #0b1120; }
+        .dark .stack > section:nth-child(5) { background: #0d1526; }
+        .dark .stack > section:nth-child(6) { background: #0b1120; }
+        .dark .stack > section:nth-child(7) { background: #0d1526; }
+        .dark .stack > section:nth-child(8) { background: #0b1120; }
+        .stack > section > .max-w-7xl { width: 100%; }
+        .stack > section > * { position: relative; }
+        /* Ambient glows would inflate the card's scroll height — park them */
+        .stack > section .glow { display: none; }
+
+        /* Mobile & tablet (<1024px): tighter type so more fits before inner scrolling */
+        @media (max-width: 1023px) {
+            html { scroll-snap-type: y proximity; }
+            .stack { padding-bottom: 2rem; }
+            .stack > section {
+                scroll-snap-align: start;
+                scroll-margin-top: calc(var(--stack-top) + 4px);
+            }
+            .stack > section h2 { font-size: 1.55rem !important; line-height: 1.25 !important; }
+            .stack > section .mt-14 { margin-top: 1.5rem !important; }
+            .stack > section .mt-12 { margin-top: 1.25rem !important; }
+            .stack > section .mt-10 { margin-top: 1.25rem !important; }
+            .stack > section .text-lg { font-size: .975rem !important; }
+        }
+
+        /* Desktop ≥1024px: presentation-scale cards */
+        @media (min-width: 1024px) {
+            .stack { --stack-top: 88px; padding-bottom: 6rem; }
+            .stack > section {
+                border-radius: 1.5rem;
+                padding-top: 3.5rem;
+                padding-bottom: 3.5rem;
+            }
+            /* Compact on short laptop viewports to minimize inner scrolling */
+            @media (max-height: 880px) {
+                .stack > section { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+                .stack > section h2 { font-size: 1.85rem !important; line-height: 1.2 !important; }
+                .stack > section .mt-14 { margin-top: 1.75rem !important; }
+                .stack > section .text-lg { font-size: .95rem !important; }
+            }
+            @media (max-height: 760px) {
+                .stack > section { padding-top: 1.75rem; padding-bottom: 1.75rem; }
+                .stack > section h2 { font-size: 1.6rem !important; }
+                .stack > section .mt-12, .stack > section .mt-14 { margin-top: 1.25rem !important; }
+                .stack .mockup { box-shadow: 0 18px 40px -24px rgba(15, 23, 42, .3); }
+            }
+        }
+
+        /* Reduced motion: natural document flow everywhere */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-snap-type: none; }
+            .stack > section { position: static; min-height: 0; max-height: none; overflow: visible !important; }
+        }
+
         /* ---------- Reduced motion ---------- */
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             *, *::before, *::after { animation: none !important; transition: none !important; }
             .reveal { opacity: 1; transform: none; }
-            .marquee-track { animation: none; flex-wrap: wrap; width: auto; justify-content: center; }
-        }
-        @media (max-width: 768px) {
-            .marquee-track { animation-duration: 24s; }
         }
 
         /* ---------- Scrollbar ---------- */
@@ -243,7 +344,7 @@
                     <i class="fas fa-sun hidden dark:inline text-sm"></i>
                 </button>
                 <a href="crm/login" class="hidden sm:inline-flex text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 transition">Sign in</a>
-                <a href="#demo" class="btn-primary !py-2.5 !px-4.5 text-sm">Book a demo</a>
+                <a href="#demo" class="btn-primary hidden sm:inline-flex !py-2.5 !px-5 text-sm">Book a demo</a>
                 <button id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false" class="lg:hidden w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -502,37 +603,41 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <p class="reveal text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-6">Everything your team needs to build better customer relationships</p>
     </div>
-    <div class="marquee" aria-hidden="true">
-        <div class="marquee-track">
-            <!-- duplicated for seamless loop -->
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-users text-emerald-500"></i> Leads &amp; Accounts</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-bullhorn text-amber-500"></i> Campaigns</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-envelope text-blue-500"></i> Email</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-comment-dots text-cyan-500"></i> SMS</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-phone text-amber-500"></i> Calls</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-robot text-violet-500"></i> AI Agents</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-chart-line text-indigo-400"></i> Analytics</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-spider text-orange-500"></i> Lead Scraper</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-book text-sky-500"></i> Knowledge Base</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-comments text-cyan-500"></i> Team Chat</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-qrcode text-rose-500"></i> QR Lead Capture</span>
-            <!-- duplicate -->
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-users text-emerald-500"></i> Leads &amp; Accounts</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-bullhorn text-amber-500"></i> Campaigns</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-envelope text-blue-500"></i> Email</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-comment-dots text-cyan-500"></i> SMS</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-phone text-amber-500"></i> Calls</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-robot text-violet-500"></i> AI Agents</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-chart-line text-indigo-400"></i> Analytics</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-spider text-orange-500"></i> Lead Scraper</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-book text-sky-500"></i> Knowledge Base</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-comments text-cyan-500"></i> Team Chat</span>
-            <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 mx-1 !py-2 !px-4"><i class="fas fa-qrcode text-rose-500"></i> QR Lead Capture</span>
+    <div class="marquee" id="capMarquee" role="region" aria-label="Product capabilities — drag, scroll or use arrow keys to explore" tabindex="0">
+            <div class="marquee-track" id="capTrack">
+            <div class="marquee-set">
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-users text-emerald-500"></i> Leads &amp; Accounts</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-bullhorn text-amber-500"></i> Campaigns</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-envelope text-blue-500"></i> Email</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-comment-dots text-cyan-500"></i> SMS</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-phone text-amber-500"></i> Calls</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-robot text-violet-500"></i> AI Agents</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-chart-line text-indigo-400"></i> Analytics</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-spider text-orange-500"></i> Lead Scraper</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-book text-sky-500"></i> Knowledge Base</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-comments text-cyan-500"></i> Team Chat</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-qrcode text-rose-500"></i> QR Lead Capture</span>
+            </div>
+            <div class="marquee-set">
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-users text-emerald-500"></i> Leads &amp; Accounts</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-bullhorn text-amber-500"></i> Campaigns</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-envelope text-blue-500"></i> Email</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-comment-dots text-cyan-500"></i> SMS</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-phone text-amber-500"></i> Calls</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-robot text-violet-500"></i> AI Agents</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-chart-line text-indigo-400"></i> Analytics</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-spider text-orange-500"></i> Lead Scraper</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-book text-sky-500"></i> Knowledge Base</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-comments text-cyan-500"></i> Team Chat</span>
+                <span class="chip bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i class="fas fa-qrcode text-rose-500"></i> QR Lead Capture</span>
+            </div>
+            </div>
         </div>
-    </div>
 </section>
+
+<div class="stack">
 
 <!-- ================= PROBLEM → SOLUTION ================= -->
 <section id="platform" class="py-20 md:py-28 px-4 sm:px-6 relative">
@@ -848,6 +953,8 @@
     </div>
 </section>
 
+
+
 <!-- ================= AUTOMATION ================= -->
 <section id="automation" class="py-20 md:py-28 px-4 sm:px-6 bg-white dark:bg-slate-950/60 border-y border-slate-100 dark:border-slate-800/70">
     <div class="max-w-7xl mx-auto">
@@ -924,6 +1031,8 @@
         </div>
     </div>
 </section>
+
+</div>
 
 <!-- ================= DEMO / CTA FORM ================= -->
 <section id="demo" class="py-20 md:py-28 px-4 sm:px-6 bg-white dark:bg-slate-950/60 border-y border-slate-100 dark:border-slate-800/70 relative overflow-hidden">
@@ -1192,6 +1301,123 @@
         io2.observe(stage);
     })();
 
+    // ---------- Stacked deck: enable inner scrolling only while a card is pinned ----------
+    (function () {
+        var cards = document.querySelectorAll('.stack > section');
+        if (!cards.length) return;
+
+        function compute() {
+            var top = 76;
+            if (window.matchMedia('(min-width: 1024px)').matches) top = 88;
+            cards.forEach(function (card) {
+                var r = card.getBoundingClientRect();
+                // Pinned = card top is at (or within 2px of) the stack offset
+                card.classList.toggle('is-pinned', Math.abs(r.top - top) < 2);
+            });
+        }
+
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () { compute(); ticking = false; });
+        }, { passive: true });
+        window.addEventListener('resize', compute);
+        compute();
+    })();
+
+    // ---------- Capability rail: hand-drag, wheel & keyboard, gentle auto-drift ----------
+    (function () {
+        var viewport = document.getElementById('capMarquee');
+        var track = document.getElementById('capTrack');
+        if (!viewport || !track) return;
+        var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        var setW = 0;
+        function measure() { setW = track.children.length ? track.children[0].getBoundingClientRect().width : 0; }
+        measure();
+        window.addEventListener('resize', function () { measure(); wrap(); });
+
+        var offset = 0, dragging = false, moved = false, startX = 0, startOffset = 0;
+        var vel = 0, lastX = 0, lastT = 0, raf = null, lastAuto = 0;
+
+        function wrap() {
+            if (setW > 0) {
+                offset = ((offset % setW) + setW) % setW;
+            }
+            track.style.transform = 'translate3d(' + (-offset) + 'px, 0, 0)';
+        }
+
+        function tick(now) {
+            raf = requestAnimationFrame(tick);
+            if (setW <= 0) return;
+            if (dragging) { lastAuto = now; return; }
+            if (Math.abs(vel) > 0.05) {
+                offset -= vel;
+                vel *= 0.94;
+                lastAuto = now;
+            } else if (!RM && !document.hidden && !userHover && now - lastAuto > 2200) {
+                offset = (offset + 0.4) % setW;
+            }
+            wrap();
+        }
+
+        var userHover = false;
+        viewport.addEventListener('mouseenter', function () { userHover = true; });
+        viewport.addEventListener('mouseleave', function () { userHover = false; });
+
+        function press(x) {
+            dragging = true; moved = false;
+            startX = lastX = x; startOffset = offset; lastT = performance.now(); vel = 0;
+            viewport.classList.add('dragging');
+            if (raf == null) raf = requestAnimationFrame(tick);
+        }
+        function move(x) {
+            if (!dragging) return;
+            var now = performance.now();
+            var dt = Math.max(now - lastT, 1);
+            vel = (x - lastX) / dt * 16;
+            lastX = x; lastT = now;
+            offset = startOffset + (startX - x);
+            moved = moved || Math.abs(x - startX) > 6;
+            wrap();
+        }
+        function release() {
+            if (!dragging) return;
+            dragging = false;
+            viewport.classList.remove('dragging');
+        }
+
+        viewport.addEventListener('mousedown', function (e) { if (e.button !== 0) return; press(e.clientX); });
+        window.addEventListener('mousemove', function (e) { move(e.clientX); });
+        window.addEventListener('mouseup', release);
+        viewport.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+        viewport.addEventListener('touchstart', function (e) { press(e.touches[0].clientX); }, { passive: true });
+        viewport.addEventListener('touchmove', function (e) { move(e.touches[0].clientX); }, { passive: true });
+        viewport.addEventListener('touchend', release);
+
+        viewport.addEventListener('wheel', function (e) {
+            if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+            e.preventDefault();
+            offset += e.deltaX; vel = 0; lastAuto = performance.now();
+            wrap();
+        }, { passive: false });
+
+        viewport.addEventListener('keydown', function (e) {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            e.preventDefault();
+            var step = setW / 12;
+            offset += (e.key === 'ArrowLeft' ? -step : step);
+            vel = 0; lastAuto = performance.now();
+            wrap();
+        });
+
+        viewport.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
+
+        raf = requestAnimationFrame(tick);
+    })();
+
     // ---------- AI insight streaming (typewriter) ----------
     (function () {
             var box = document.getElementById('aiInsightText');
@@ -1245,5 +1471,7 @@
             io3.observe(box);
     })();
 </script>
+<script src="https://crm.eternitycrm.com/cdn/widget.js"></script>
 </body>
 </html>
+
