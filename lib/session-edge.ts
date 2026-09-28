@@ -1,6 +1,10 @@
 /**
  * Edge-safe session token verification (Web Crypto) for middleware.
  * Mirrors lib/auth.ts HMAC scheme: base64url(payload) + "." + base64url(HMAC-SHA256).
+ *
+ * HARDENED: this function can NEVER throw. Any malformed input, missing env
+ * var, or crypto failure returns null (treated as "no valid session"), so the
+ * middleware can never 500 a page because of a bad cookie.
  */
 
 export const SESSION_COOKIE = "ecrm_admin_session";
@@ -23,31 +27,34 @@ function b64urlToBytes(s: string): Uint8Array<ArrayBuffer> {
 export async function verifySessionTokenEdge(
   token: string | undefined | null
 ): Promise<SessionPayload | null> {
-  if (!token) return null;
-  const [body, sig] = token.split(".");
-  if (!body || !sig) return null;
-
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) return null;
-
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
-  const ok = await crypto.subtle.verify(
-    "HMAC",
-    key,
-    b64urlToBytes(sig),
-    new TextEncoder().encode(body)
-  );
-  if (!ok) return null;
-
   try {
+    if (!token || typeof token !== "string") return null;
+    const [body, sig] = token.split(".");
+    if (!body || !sig) return null;
+
+    // Accept AUTH_SECRET (canonical) or AUTH_SECRET_LOCAL as fallbacks.
+    const secret = process.env.AUTH_SECRET || process.env.AUTH_SECRET_LOCAL;
+    if (!secret) return null; // no secret configured → treat as unauthenticated
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const ok = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      b64urlToBytes(sig),
+      new TextEncoder().encode(body)
+    );
+    if (!ok) return null;
+
     const payload = JSON.parse(new TextDecoder().decode(b64urlToBytes(body))) as SessionPayload;
-    if (!payload.adminId || !payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (!payload?.adminId || !payload?.exp || payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
     return payload;
   } catch {
     return null;
