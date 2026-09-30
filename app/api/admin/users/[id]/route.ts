@@ -30,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
     const update: Record<string, unknown> = {};
-    for (const key of ["name", "company", "email", "phone", "companySize", "message"] as const) {
+    for (const key of ["name", "company", "country", "email", "phone", "companySize", "message"] as const) {
       if (typeof body[key] === "string") update[key] = body[key].trim();
     }
     if (typeof body.assignedAdminEmail === "string") {
