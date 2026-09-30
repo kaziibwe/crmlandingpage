@@ -1,20 +1,10 @@
 import { connectDB } from "@/lib/mongodb";
 import { Registration } from "@/lib/models/Registration";
 import { getSessionAdmin } from "@/lib/auth";
+import { formatDateTime } from "@/lib/datetime";
 import StatusBadge, { statusTone } from "./_components/StatusBadge";
 
 export const dynamic = "force-dynamic";
-
-function fmtDate(d?: Date | string | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default async function AdminDashboardPage() {
   await connectDB();
@@ -138,7 +128,7 @@ export default async function AdminDashboardPage() {
                       </p>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500">{fmtDate(u.createdAt)}</td>
+                  <td className="px-5 py-3.5 text-xs text-slate-500">{formatDateTime(u.createdAt)}</td>
                   <td className="px-5 py-3.5"><StatusBadge value={u.demoStatus} /></td>
                   <td className="px-5 py-3.5"><StatusBadge value={u.setupStatus} /></td>
                   <td className="px-5 py-3.5"><StatusBadge value={u.registrationStatus} /></td>
@@ -173,7 +163,7 @@ function DemoRow({ u, overdue = false }: { u: Record<string, unknown>; overdue?:
           {company || name} <span className="font-normal text-slate-400">· {name}</span>
         </p>
         <p className="text-xs text-slate-400">
-          {overdue ? "Overdue — " : ""}{fmtDate(demoDate)} · {assigned}
+          {overdue ? "Overdue — " : ""}{formatDateTime(demoDate)} · {assigned}
         </p>
       </div>
       <span className={`admin-badge ${overdue ? statusTone("MISSED") : statusTone("SCHEDULED")}`}>
