@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import StatusBadge from "../../_components/StatusBadge";
+import { formatDateTime } from "@/lib/datetime";
 
 interface User {
   _id: string;
   name: string;
   company: string;
+  country: string;
   email: string;
   phone: string;
   companySize: string;
@@ -41,14 +43,7 @@ interface Note {
 }
 
 function fmt(d?: string | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(d);
 }
 
 function toDatetimeLocal(d?: string | null) {
@@ -70,7 +65,7 @@ export default function UserDetailPage() {
   // action state
   const [demoDateInput, setDemoDateInput] = useState("");
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState({ name: "", company: "", email: "", phone: "" });
+  const [form, setForm] = useState({ name: "", company: "", country: "", email: "", phone: "" });
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   // notes state
@@ -94,6 +89,7 @@ export default function UserDetailPage() {
       setForm({
         name: data.user.name ?? "",
         company: data.user.company ?? "",
+        country: data.user.country ?? "",
         email: data.user.email ?? "",
         phone: data.user.phone ?? "",
       });
@@ -210,10 +206,24 @@ export default function UserDetailPage() {
   }
 
   if (error && !user) {
+    const notFound = /not found/i.test(error);
     return (
-      <div className="admin-card p-8 text-center">
-        <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
-        <button onClick={() => router.back()} className="admin-btn-ghost mt-4 text-xs">Go back</button>
+      <div className="admin-card p-10 text-center">
+        <span className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
+          <i className={`fas ${notFound ? "fa-user-slash text-slate-400" : "fa-triangle-exclamation text-amber-500"} text-xl`}></i>
+        </span>
+        <h1 className="text-lg font-bold text-slate-900 dark:text-white mt-4">
+          {notFound ? "Registration not found" : "Something went wrong"}
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">
+          {notFound
+            ? "This registration doesn't exist or may have been removed. It may have been merged into another record."
+            : error}
+        </p>
+        <div className="flex items-center justify-center gap-2 mt-5">
+          <a href="/eternitycrmadmin/users" className="admin-btn-primary text-xs"><i className="fas fa-users"></i> All registrations</a>
+          <button onClick={() => router.back()} className="admin-btn-ghost text-xs">Go back</button>
+        </div>
       </div>
     );
   }
@@ -279,6 +289,7 @@ export default function UserDetailPage() {
             <div className="space-y-3">
               <div><label className="admin-label">Name</label><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="admin-input" /></div>
               <div><label className="admin-label">Company</label><input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="admin-input" /></div>
+              <div><label className="admin-label">Country</label><input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className="admin-input" /></div>
               <div><label className="admin-label">Email</label><input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="admin-input" /></div>
               <div><label className="admin-label">Phone</label><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="admin-input" /></div>
               <div className="flex gap-2 pt-1">
@@ -290,6 +301,7 @@ export default function UserDetailPage() {
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2.5 text-sm">
               <dt className="text-slate-400">Name</dt><dd className="text-slate-800 dark:text-slate-100 font-medium">{user.name}</dd>
               <dt className="text-slate-400">Company</dt><dd className="text-slate-800 dark:text-slate-100">{user.company || "—"}</dd>
+              <dt className="text-slate-400">Country</dt><dd className="text-slate-800 dark:text-slate-100">{user.country || "—"}</dd>
               <dt className="text-slate-400">Email</dt><dd className="text-slate-800 dark:text-slate-100">{user.email}</dd>
               <dt className="text-slate-400">WhatsApp</dt>
               <dd className="text-slate-800 dark:text-slate-100">
