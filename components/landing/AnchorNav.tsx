@@ -17,15 +17,34 @@ export default function AnchorNav() {
 
     // Document-flow Y of an element, unaffected by sticky/transformed ancestors.
     // getBoundingClientRect() lies for sticky deck cards (returns the STUCK
-    // position), which broke anchor links clicked from the footer/below-deck.
+    // position) — and offsetTop accumulation lies too: a stuck sticky element's
+    // offsetTop reflects its displaced position. So before measuring, a sticky
+    // target is temporarily rendered static (flow position), measured, then
+    // restored — synchronously, so the user never sees it.
     const documentOffsetTop = (el: HTMLElement): number => {
-      let y = 0;
-      let node: HTMLElement | null = el;
-      while (node) {
-        y += node.offsetTop;
-        node = node.offsetParent as HTMLElement | null;
+      const computed = window.getComputedStyle(el);
+      const wasSticky = computed.position === "sticky";
+      let prevPosition = "";
+      let prevTop = "";
+      if (wasSticky) {
+        prevPosition = el.style.position;
+        prevTop = el.style.top;
+        el.style.position = "static";
       }
-      return y;
+      try {
+        let y = 0;
+        let node: HTMLElement | null = el;
+        while (node) {
+          y += node.offsetTop;
+          node = node.offsetParent as HTMLElement | null;
+        }
+        return y;
+      } finally {
+        if (wasSticky) {
+          el.style.position = prevPosition;
+          el.style.top = prevTop;
+        }
+      }
     };
 
     const onClick = (e: MouseEvent) => {
