@@ -15,6 +15,8 @@ const CHIPS: Array<[string, string]> = [
   ["fas fa-book text-sky-500", "Knowledge Base"],
   ["fas fa-comments text-cyan-500", "Team Chat"],
   ["fas fa-qrcode text-rose-500", "QR Lead Capture"],
+  ["fas fa-ticket text-fuchsia-500", "Event QR Tickets"],
+  ["fas fa-barcode text-rose-400", "Door Check-in Scanner"],
 ];
 
 export default function Marquee() {
