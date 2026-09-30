@@ -1,3 +1,5 @@
+import { FAQ_ITEMS } from "@/lib/faq";
+
 export function ProblemSolution() {
   return (
     <section id="platform" className="py-20 md:py-28 px-4 sm:px-6 relative">
@@ -35,6 +37,7 @@ export function ProblemSolution() {
               <li className="flex items-center gap-3"><span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 flex items-center justify-center shrink-0"><i className="fas fa-check text-emerald-600 dark:text-emerald-400 text-xs"></i></span><span className="text-slate-700 dark:text-slate-200">Campaigns reach leads on WhatsApp, email, SMS &amp; calls</span></li>
               <li className="flex items-center gap-3"><span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 flex items-center justify-center shrink-0"><i className="fas fa-check text-emerald-600 dark:text-emerald-400 text-xs"></i></span><span className="text-slate-700 dark:text-slate-200">Delivery tracked end-to-end, with automatic retries</span></li>
               <li className="flex items-center gap-3"><span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 flex items-center justify-center shrink-0"><i className="fas fa-check text-emerald-600 dark:text-emerald-400 text-xs"></i></span><span className="text-slate-700 dark:text-slate-200">Roles &amp; permissions keep data visible to the right people</span></li>
+              <li className="flex items-center gap-3"><span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 flex items-center justify-center shrink-0"><i className="fas fa-check text-emerald-600 dark:text-emerald-400 text-xs"></i></span><span className="text-slate-700 dark:text-slate-200">Event guests get QR tickets — scanned at the door for verified entry</span></li>
             </ul>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-6 leading-relaxed">Your team always knows who spoke to the customer, when, and what happens next.</p>
           </div>
@@ -365,6 +368,8 @@ export function Automation() {
           <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-bolt text-amber-500"></i> Batch scheduling</span>
           <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-credit-card text-emerald-500"></i> Payment links</span>
           <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-qrcode text-rose-500"></i> QR event capture</span>
+          <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-ticket text-fuchsia-500"></i> Event QR tickets</span>
+          <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-barcode text-rose-400"></i> Door check-in scanner</span>
           <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-comments text-cyan-500"></i> Team chat</span>
           <span className="chip bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 !py-2 !px-4"><i className="fas fa-calendar text-indigo-400"></i> Calendar</span>
         </div>
@@ -408,6 +413,39 @@ export function Security() {
   );
 }
 
+export function Faq() {
+  return (
+    <section id="faq" className="py-20 md:py-28 px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="reveal text-center">
+          <p className="eyebrow justify-center"><i className="fas fa-circle-question"></i> FAQ</p>
+          <h2 className="text-3xl md:text-[42px] font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Frequently asked questions.</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-4 text-lg leading-relaxed">Everything teams usually ask before switching to EternityCRM.</p>
+        </div>
+        {/* The list scrolls INSIDE the section: header stays, questions pan.
+            Needed because FAQ is the last deck card — it would otherwise pin
+            for only a moment before the page scrolls on. */}
+        <div className="faq-scroll mt-10 space-y-3 max-h-[52vh] lg:max-h-[56vh] overflow-y-auto pr-1">
+          {FAQ_ITEMS.map((item, i) => (
+            <details
+              key={item.q}
+              className="reveal card group px-5 py-4 cursor-pointer"
+              data-delay={String(Math.min(i + 1, 4))}
+              open={i === 0}
+            >
+              <summary className="flex items-center justify-between gap-4 list-none [&::-webkit-details-marker]:hidden">
+                <span className="text-sm md:text-base font-bold text-slate-800 dark:text-white">{item.q}</span>
+                <i className="fas fa-plus text-blue-500 text-xs shrink-0 transition-transform group-open:rotate-45"></i>
+              </summary>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mt-3">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function FinalCta() {
   return (
     <section className="py-20 md:py-28 px-4 sm:px-6">
@@ -429,13 +467,17 @@ export function FinalCta() {
   );
 }
 
-export function Footer() {
+/**
+ * linkPrefix: set to "/" on standalone pages (e.g. /privacy) so the section
+ * links navigate back to the landing page's anchors instead of dead hashes.
+ */
+export function Footer({ linkPrefix = "" }: { linkPrefix?: string } = {}) {
   return (
     <footer className="border-t border-slate-100 dark:border-slate-800/70 bg-white dark:bg-slate-950 pt-14 pb-8 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-[1.4fr_1fr_1fr_1.2fr] gap-10">
           <div>
-            <a href="#top" className="flex items-center gap-3">
+            <a href={`${linkPrefix}#top`} className="flex items-center gap-3">
               <img src="/logo.png" alt="EternityCRM logo" className="w-10 h-10 rounded-xl object-contain shadow-md ring-1 ring-slate-900/5 dark:ring-white/10" />
               <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Eternity<span className="text-blue-600 dark:text-blue-400">CRM</span></span>
             </a>
@@ -445,18 +487,18 @@ export function Footer() {
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">Product</p>
             <ul className="space-y-2.5 text-sm">
-              <li><a href="#platform" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Platform</a></li>
-              <li><a href="#channels" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Channels</a></li>
-              <li><a href="#ai" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">AI</a></li>
-              <li><a href="#pipeline" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Sales pipeline</a></li>
-              <li><a href="#customer360" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Customer 360</a></li>
-              <li><a href="#automation" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Automation</a></li>
+              <li><a href={`${linkPrefix}#platform`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Platform</a></li>
+              <li><a href={`${linkPrefix}#channels`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Channels</a></li>
+              <li><a href={`${linkPrefix}#ai`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">AI</a></li>
+              <li><a href={`${linkPrefix}#pipeline`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Sales pipeline</a></li>
+              <li><a href={`${linkPrefix}#customer360`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Customer 360</a></li>
+              <li><a href={`${linkPrefix}#automation`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Automation</a></li>
             </ul>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">Get started</p>
             <ul className="space-y-2.5 text-sm">
-              <li><a href="#demo" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Book a demo</a></li>
+              <li><a href={`${linkPrefix}#demo`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Book a demo</a></li>
               <li><a href="https://crm.eternitycrm.com/login" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Sign in</a></li>
             </ul>
           </div>
@@ -472,6 +514,10 @@ export function Footer() {
         </div>
         <div className="mt-12 pt-6 border-t border-slate-100 dark:border-slate-800/70 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-400 dark:text-slate-500">© 2026 EternityCRM. All rights reserved.</p>
+          <div className="flex items-center gap-5">
+            <a href="/privacy" className="text-xs text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition">Privacy Policy</a>
+            <a href="/terms" className="text-xs text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition">Terms &amp; Conditions</a>
+          </div>
           <p className="text-xs text-slate-400 dark:text-slate-500">Built for teams that live in customer conversations.</p>
         </div>
       </div>
