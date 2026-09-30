@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export default function Navbar() {
+/**
+ * linkPrefix: set to "/" on standalone pages (e.g. /privacy) so the section
+ * links navigate back to the landing page's anchors instead of dead hashes.
+ */
+export default function Navbar({ linkPrefix = "" }: { linkPrefix?: string } = {}) {
   const navRef = useRef<HTMLElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -46,7 +50,7 @@ export default function Navbar() {
     <nav id="siteNav" ref={navRef} className="fixed top-0 inset-x-0 z-50 border-b border-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-[72px]">
-          <a href="#top" className="flex items-center gap-3">
+          <a href={`${linkPrefix}#top`} className="flex items-center gap-3">
             <img src="/logo.png" alt="EternityCRM logo" className="w-10 h-10 rounded-xl object-contain shadow-md ring-1 ring-slate-900/5 dark:ring-white/10" />
             <span className="leading-tight">
               <span className="block text-lg font-bold text-slate-900 dark:text-white tracking-tight">
@@ -59,11 +63,11 @@ export default function Navbar() {
           </a>
 
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium">
-            <a href="#platform" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Platform</a>
-            <a href="#channels" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Channels</a>
-            <a href="#ai" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">AI</a>
-            <a href="#pipeline" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Sales</a>
-            <a href="#security" className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Security</a>
+            <a href={`${linkPrefix}#platform`} className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Platform</a>
+            <a href={`${linkPrefix}#channels`} className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Channels</a>
+            <a href={`${linkPrefix}#ai`} className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">AI</a>
+            <a href={`${linkPrefix}#pipeline`} className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Sales</a>
+            <a href={`${linkPrefix}#security`} className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Security</a>
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -86,7 +90,7 @@ export default function Navbar() {
             <a href="https://crm.eternitycrm.com/login" className="hidden sm:inline-flex text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 transition">
               Sign in
             </a>
-            <a href="#demo" className="btn-primary hidden sm:inline-flex !py-2.5 !px-5 text-sm">Book a demo</a>
+            <a href={`${linkPrefix}#demo`} className="btn-primary hidden lg:inline-flex !py-2.5 !px-5 text-sm">Book a demo</a>
             <button
               aria-label="Open menu"
               aria-expanded={open}
@@ -103,13 +107,13 @@ export default function Navbar() {
         ref={menuRef}
         className={`lg:hidden ${open ? "" : "hidden"} bg-white dark:bg-slate-950/95 backdrop-blur border-t border-slate-100 dark:border-slate-800 px-6 py-5 space-y-4 text-[15px] font-medium`}
       >
-        <a href="#platform" className="block text-slate-600 dark:text-slate-300">Platform</a>
-        <a href="#channels" className="block text-slate-600 dark:text-slate-300">Channels</a>
-        <a href="#ai" className="block text-slate-600 dark:text-slate-300">AI</a>
-        <a href="#pipeline" className="block text-slate-600 dark:text-slate-300">Sales</a>
-        <a href="#security" className="block text-slate-600 dark:text-slate-300">Security</a>
+        <a href={`${linkPrefix}#platform`} className="block text-slate-600 dark:text-slate-300">Platform</a>
+        <a href={`${linkPrefix}#channels`} className="block text-slate-600 dark:text-slate-300">Channels</a>
+        <a href={`${linkPrefix}#ai`} className="block text-slate-600 dark:text-slate-300">AI</a>
+        <a href={`${linkPrefix}#pipeline`} className="block text-slate-600 dark:text-slate-300">Sales</a>
+        <a href={`${linkPrefix}#security`} className="block text-slate-600 dark:text-slate-300">Security</a>
         <a href="https://crm.eternitycrm.com/login" className="block text-slate-600 dark:text-slate-300">Sign in</a>
-        <a href="#demo" className="btn-primary w-full">Book a demo</a>
+        <a href={`${linkPrefix}#demo`} className="btn-primary w-full">Book a demo</a>
       </div>
     </nav>
   );
