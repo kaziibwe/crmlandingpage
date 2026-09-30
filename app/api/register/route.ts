@@ -13,13 +13,14 @@ export async function POST(req: Request) {
     const name = String(body?.name ?? "").trim();
     const email = String(body?.email ?? "").trim().toLowerCase();
     const company = String(body?.company ?? "").trim();
+    const country = String(body?.country ?? "").trim();
     const phone = String(body?.phone ?? "").trim();
     const companySize = String(body?.size ?? "").trim();
     const message = String(body?.message ?? "").trim();
 
-    if (!name || !email || !company || !phone || !message) {
+    if (!name || !email || !company || !country || !phone || !message) {
       return NextResponse.json(
-        { error: "Name, work email, company, WhatsApp number and message are required." },
+        { error: "Name, work email, company, country, WhatsApp number and message are required." },
         { status: 400 }
       );
     }
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
       name,
       email,
       company,
+      country,
       phone,
       companySize,
       message,
