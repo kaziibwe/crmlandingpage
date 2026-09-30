@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     const filter: Record<string, unknown> = {};
     if (q) {
       const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-      filter.$or = [{ name: rx }, { email: rx }, { company: rx }, { phone: rx }];
+      filter.$or = [{ name: rx }, { email: rx }, { company: rx }, { country: rx }, { phone: rx }];
     }
     if (status) filter.registrationStatus = status;
     if (demo) filter.demoStatus = demo;
