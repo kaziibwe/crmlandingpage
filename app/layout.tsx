@@ -6,7 +6,10 @@ import { SITE_URL, SITE_NAME, SEO_TITLE, SEO_DESCRIPTION, SEO_KEYWORDS } from "@
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SEO_TITLE,
+  title: {
+    default: SEO_TITLE,
+    template: `%s · ${SITE_NAME}`,
+  },
   description: SEO_DESCRIPTION,
   keywords: SEO_KEYWORDS,
   applicationName: SITE_NAME,
@@ -23,21 +26,14 @@ export const metadata: Metadata = {
     title: SEO_TITLE,
     description: SEO_DESCRIPTION,
     locale: "en_US",
-    images: [
-      {
-        url: "/logo.png",
-        width: 600,
-        height: 600,
-        alt: "EternityCrm — AI-Powered CRM",
-      },
-    ],
+    // og:image comes from app/opengraph-image.tsx (file convention, 1200x630).
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     site: SITE_NAME,
     title: SEO_TITLE,
     description: SEO_DESCRIPTION,
-    images: ["/logo.png"],
+    // falls back to the opengraph-image file convention automatically
   },
   robots: {
     index: true,
@@ -51,6 +47,14 @@ export const metadata: Metadata = {
     },
   },
   category: "business software",
+  formatDetection: {
+    telephone: false,
+  },
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
