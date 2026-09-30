@@ -113,7 +113,6 @@ export default function Navbar({ linkPrefix = "" }: { linkPrefix?: string } = {}
         <a href={`${linkPrefix}#pipeline`} className="block text-slate-600 dark:text-slate-300">Sales</a>
         <a href={`${linkPrefix}#security`} className="block text-slate-600 dark:text-slate-300">Security</a>
         <a href="https://crm.eternitycrm.com/login" className="block text-slate-600 dark:text-slate-300">Sign in</a>
-        <a href={`${linkPrefix}#demo`} className="btn-primary w-full">Book a demo</a>
       </div>
     </nav>
   );
