@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import StatusBadge from "../_components/StatusBadge";
+import { formatDateTime } from "@/lib/datetime";
 
 interface AdminRow {
   id: string;
@@ -145,7 +146,7 @@ export default function AdminsPage() {
                       {a.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500">{a.lastLoginAt ? new Date(a.lastLoginAt).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Never"}</td>
+                  <td className="px-5 py-3.5 text-xs text-slate-500">{a.lastLoginAt ? formatDateTime(a.lastLoginAt) : "Never"}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex justify-end gap-2">
                       <button
