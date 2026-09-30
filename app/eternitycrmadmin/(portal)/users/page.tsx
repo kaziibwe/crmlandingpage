@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import StatusBadge from "../_components/StatusBadge";
+import { formatDateTime, formatDate } from "@/lib/datetime";
 
 interface Row {
   _id: string;
   name: string;
   company: string;
+  country: string;
   email: string;
   phone: string;
   registrationStatus: string;
@@ -182,6 +184,7 @@ export default function UsersPage() {
               <tr className="text-left text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
                 <th className="px-5 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("name")}>Name {sort === "name" ? (dir === "asc" ? "↑" : "↓") : ""}</th>
                 <th className="px-5 py-3 font-semibold">Company</th>
+                <th className="px-5 py-3 font-semibold">Country</th>
                 <th className="px-5 py-3 font-semibold">Contact</th>
                 <th className="px-5 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("createdAt")}>Registered {sort === "createdAt" ? (dir === "asc" ? "↑" : "↓") : ""}</th>
                 <th className="px-5 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("demoDate")}>Demo</th>
@@ -196,15 +199,16 @@ export default function UsersPage() {
                 <tr key={u._id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                   <td className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-100">{u.name}</td>
                   <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">{u.company || "—"}</td>
+                  <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">{u.country || "—"}</td>
                   <td className="px-5 py-3.5">
                     <p className="text-slate-600 dark:text-slate-300">{u.email}</p>
                     {u.phone && <p className="text-xs text-emerald-600 dark:text-emerald-400"><i className="fab fa-whatsapp mr-1"></i>{u.phone}</p>}
                   </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500">{new Date(u.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                  <td className="px-5 py-3.5 text-xs text-slate-500">{formatDate(u.createdAt)}</td>
                   <td className="px-5 py-3.5">
                     <StatusBadge value={u.demoStatus} />
                     {u.demoDate && u.demoStatus === "SCHEDULED" && (
-                      <p className="text-[11px] text-blue-500 mt-1">{new Date(u.demoDate).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                      <p className="text-[11px] text-blue-500 mt-1">{formatDateTime(u.demoDate)}</p>
                     )}
                   </td>
                   <td className="px-5 py-3.5"><StatusBadge value={u.setupStatus} /></td>
@@ -230,7 +234,7 @@ export default function UsersPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold text-slate-800 dark:text-slate-100">{u.name}</p>
-                <p className="text-xs text-slate-400">{u.company || u.email}</p>
+                <p className="text-xs text-slate-400">{u.company || u.email}{u.country ? ` · ${u.country}` : ""}</p>
               </div>
               <StatusBadge value={u.registrationStatus} />
             </div>
@@ -239,10 +243,10 @@ export default function UsersPage() {
               <StatusBadge value={u.setupStatus} />
             </div>
             {u.demoDate && u.demoStatus === "SCHEDULED" && (
-              <p className="text-xs text-blue-500">Demo: {new Date(u.demoDate).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+              <p className="text-xs text-blue-500">Demo: {formatDateTime(u.demoDate)}</p>
             )}
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-slate-400">Registered {new Date(u.createdAt).toLocaleDateString("en-GB")}</span>
+              <span className="text-[11px] text-slate-400">Registered {formatDate(u.createdAt)}</span>
               <a href={`/eternitycrmadmin/users/${u._id}`} className="admin-btn-ghost !px-3 !py-1.5 text-xs">Open</a>
             </div>
           </div>
