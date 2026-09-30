@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import PhoneField from "./PhoneField";
+import CountrySelect from "./CountrySelect";
 
 export default function DemoForm() {
   const [status, setStatus] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function DemoForm() {
           name: fd.get("name"),
           email: fd.get("email"),
           company: fd.get("company"),
+          country,
           phone,
           size: fd.get("size"),
           message: fd.get("message"),
@@ -62,6 +65,12 @@ export default function DemoForm() {
           <label htmlFor="f_company" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Company *</label>
           <input id="f_company" name="company" type="text" required placeholder="Company Ltd" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:border-blue-500 outline-none transition" />
         </div>
+        <div>
+          <label htmlFor="f_country" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Country *</label>
+          <CountrySelect id="f_country" name="country" value={country} onChange={setCountry} required />
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="f_size" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Team size</label>
           <select id="f_size" name="size" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:border-blue-500 outline-none transition">
