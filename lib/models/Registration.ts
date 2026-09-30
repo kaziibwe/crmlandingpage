@@ -27,6 +27,7 @@ const RegistrationSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
     company: { type: String, trim: true, default: "" },
+    country: { type: String, trim: true, default: "" }, // e.g. "Uganda"
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, trim: true, default: "" },
     companySize: { type: String, trim: true, default: "" },
