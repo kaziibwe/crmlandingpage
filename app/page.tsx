@@ -1,4 +1,5 @@
-import { SITE_URL, SEO_DESCRIPTION } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SEO_DESCRIPTION } from "@/lib/site";
+import { FAQ_ITEMS } from "@/lib/faq";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import Marquee from "@/components/landing/Marquee";
@@ -15,6 +16,7 @@ import {
   Automation,
   Security,
   FinalCta,
+  Faq,
   Footer,
 } from "@/components/landing/Sections";
 
@@ -52,6 +54,20 @@ const JSON_LD = {
         availableLanguage: ["English"],
       },
     },
+    {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_URL,
+      publisher: { "@type": "Organization", name: "EternityCrm", url: SITE_URL },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: FAQ_ITEMS.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
   ],
 };
 
@@ -76,6 +92,7 @@ export default function LandingPage() {
         <Customer360 />
         <Automation />
         <Security />
+        <Faq />
       </div>
       <DemoSection />
       <FinalCta />
