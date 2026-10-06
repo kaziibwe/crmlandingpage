@@ -500,6 +500,8 @@ export function Footer({ linkPrefix = "" }: { linkPrefix?: string } = {}) {
             <ul className="space-y-2.5 text-sm">
               <li><a href={`${linkPrefix}#demo`} className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Book a demo</a></li>
               <li><a href="https://crm.eternitycrm.com/login" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Sign in</a></li>
+              <li><a href="/tools" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Tools dashboard</a></li>
+              <li><a href="/tools/document-number-extractor" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Document Number Extractor</a></li>
             </ul>
           </div>
           <div>
