@@ -8,6 +8,7 @@ const NAV = [
   { href: "/eternitycrmadmin", label: "Dashboard", icon: "fas fa-tachometer-alt" },
   { href: "/eternitycrmadmin/users", label: "Registrations", icon: "fas fa-users" },
   { href: "/eternitycrmadmin/admins", label: "Administrators", icon: "fas fa-user-shield" },
+  { href: "/eternitycrmadmin/tools/usage", label: "Tool analytics", icon: "fas fa-chart-line" },
   { href: "/eternitycrmadmin/profile", label: "My profile", icon: "fas fa-id-badge" },
 ];
 
