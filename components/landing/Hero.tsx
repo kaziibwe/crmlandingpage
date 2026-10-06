@@ -74,13 +74,23 @@ export default function Hero() {
     "Pipeline health is strong. Two deals in Negotiation haven't been contacted in 4 days — schedule follow-ups?"
   );
   const [streamLabel, setStreamLabel] = useState("streaming");
+  const [hasWindow, setHasWindow] = useState(false);
+  const [rm, setRm] = useState(false);
 
   // ---------- Hero live simulation ----------
+  // Browser-only APIs (window, document, IntersectionObserver) are read ONLY
+  // after hydration; during SSR the component renders with empty state to avoid
+  // a hydration mismatch on the landing page.
+  useEffect(() => {
+    setHasWindow(true);
+    setRm(typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
-    const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const RM = rm;
 
     let evIdx = 0, slotIdx = 0, paused = false;
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -112,11 +122,11 @@ export default function Hero() {
     };
 
     const tick = () => {
-      if (document.hidden || paused) return;
+      if (hasWindow && (document.hidden || paused)) return;
       applyEvent(EVENTS[evIdx++ % EVENTS.length]);
     };
 
-    if (RM || !("IntersectionObserver" in window)) {
+    if (RM || !hasWindow || !('IntersectionObserver' in window)) {
       // Static fallback: a few notifications, no motion
       applyEvent(EVENTS[0], "tl");
       applyEvent(EVENTS[1], "tr");
@@ -166,7 +176,7 @@ export default function Hero() {
 
   // ---------- AI insight typewriter ----------
   useEffect(() => {
-    const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const RM = hasWindow ? (window.matchMedia("(prefers-reduced-motion: reduce)").matches) : false;
     let i = 0, paused = false, started = false;
     let timer: ReturnType<typeof setInterval> | null = null;
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -178,7 +188,7 @@ export default function Hero() {
       setStreamLabel("streaming");
       if (timer) clearInterval(timer);
       timer = setInterval(() => {
-        if (document.hidden || paused) return;
+        if (hasWindow && (document.hidden || paused)) return;
         c += 1;
         setInsight(msg.slice(0, c));
         if (c >= msg.length) {
@@ -190,9 +200,9 @@ export default function Hero() {
       }, 16);
     };
 
-    if (RM || !("IntersectionObserver" in window)) {
+    if (RM || !hasWindow || !('IntersectionObserver' in window)) {
       const iv = setInterval(() => {
-        if (!document.hidden) {
+        if (hasWindow && !document.hidden) {
           i += 1;
           setInsight(INSIGHTS[i % INSIGHTS.length]);
         }
