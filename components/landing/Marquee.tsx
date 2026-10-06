@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CHIPS: Array<[string, string]> = [
   ["fas fa-users text-emerald-500", "Leads & Accounts"],
@@ -22,13 +22,18 @@ const CHIPS: Array<[string, string]> = [
 export default function Marquee() {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const [hasWindow, setHasWindow] = useState(false);
+
+  useEffect(() => {
+    setHasWindow(typeof window !== "undefined");
+  }, []);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     const track = trackRef.current;
     if (!viewport || !track) return;
 
-    const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const RM = hasWindow ? (window.matchMedia("(prefers-reduced-motion: reduce)").matches) : false;
 
     let setW = 0;
     const measure = () => {
