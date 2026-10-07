@@ -11,17 +11,14 @@ export default function WebhookLiveFeed() {
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    const es = new EventSource(
-      `/api/webhooks/events/sse?client_ref=portal-${Date.now()}&events=message.received,message.status,message.reaction,message.read,message.postback,message.echo,template.status,user.preferences,webhook.test`
-    );
+    const base = (typeof window !== "undefined" && (window as any).__WEBHOOK_BASE_URL) || `/`;
+    const sseUrl = `${base}/api/webhooks/events/sse?client_ref=portal-${Date.now()}&events=message.received,message.status,message.reaction,message.read,message.postback,message.echo,template.status,user.preferences,webhook.test`;
+    const es = new EventSource(sseUrl);
     esRef.current = es;
 
     es.addEventListener("open", () => setConnected(true));
     es.addEventListener("error", () => {
       setConnected(false);
-      // Reconnect is automatic by the browser; we do not hard-close here so
-      // the EventSource keeps retrying. A manual close is possible via the
-      // cleanup function below.
     });
 
     es.addEventListener("message", (event) => {
@@ -69,7 +66,7 @@ export default function WebhookLiveFeed() {
       </div>
       <pre
         ref={logRef as unknown as React.Ref<HTMLPreElement>}
-        className="flex-1 overflow-auto p-3 whitespace-pre-wrap break-words"
+        className="flex-1 overflow-auto p-3 whitespace-pre-wrap break-words h-[200px]"
       >
         {joined || <span className="text-slate-500">Waiting for deliveries…</span>}
       </pre>
