@@ -117,14 +117,13 @@ async function processQueuedItem(eventId: string, payload: unknown, webhookId: s
   if (!job) {
     await EventModel.create({
       eventId,
-      idempotencyKey: makeReplayKey(eventId, payload),
-      webhookId: webhookId ?? null,
-      status: "queued",
-      attempts: 0,
-      lastError: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
+      idempotencyKey: makeReplayKey(eventId, payload),    webhookId: webhookId ?? "",
+    status: "queued",
+    attempts: 0,
+    lastError: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
     return;
   }
 
@@ -207,7 +206,7 @@ export async function POST(req: NextRequest) {
       (req.headers.get("X-Intelli-Message-Id") ?? req.headers.get("X-Intelli-Delivery-Id") ?? "") as string,
       {}
     ),
-    webhookId: webhookId ?? null,
+    webhookId: webhookId ?? "",
     status: "queued",
     attempts: 0,
     lastError: null,
@@ -224,7 +223,7 @@ export async function POST(req: NextRequest) {
       account_id: req.headers.get("X-Intelli-Sender-Account-Id") ?? "",
     },
     receivedAt: new Date().toISOString(),
-    webhookId: webhookId ?? null,
+    webhookId: webhookId ?? "",
     status: "accepted",
     error: null,
     requestId: deliveryId,
@@ -243,3 +242,4 @@ export async function POST(req: NextRequest) {
     }
   );
 }
+
