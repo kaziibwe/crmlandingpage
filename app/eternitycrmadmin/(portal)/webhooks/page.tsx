@@ -1,14 +1,11 @@
 import { Metadata } from "next";
+import { connectDB } from "@/lib/mongodb";
+import { Webhook, toWebhookConfig } from "@/lib/models/Webhook";
 import { getSessionAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import WebhookLiveFeed from "./WebhookLiveFeed";
 
 const BASE_URL = (process.env.BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
-
-export const metadata: Metadata = {
-  title: "Webhooks",
-  description: "Manage Intelli Partner webhook subscriptions and monitor live deliveries.",
-};
 
 export const metadata: Metadata = {
   title: "Webhooks",
