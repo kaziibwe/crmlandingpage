@@ -1,9 +1,14 @@
 import { Metadata } from "next";
-import { connectDB } from "@/lib/mongodb";
-import { Webhook, toWebhookConfig } from "@/lib/models/Webhook";
 import { getSessionAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import WebhookLiveFeed from "./WebhookLiveFeed";
+
+const BASE_URL = (process.env.BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+
+export const metadata: Metadata = {
+  title: "Webhooks",
+  description: "Manage Intelli Partner webhook subscriptions and monitor live deliveries.",
+};
 
 export const metadata: Metadata = {
   title: "Webhooks",
@@ -49,7 +54,7 @@ export default async function WebhooksPage() {
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <dt className="text-slate-500">Receiver endpoint</dt>
-              <dd className="font-mono text-slate-900 dark:text-white break-all">POST /api/webhooks/events</dd>
+              <dd className="font-mono text-slate-900 dark:text-white break-all">POST {BASE_URL}/api/webhooks/events</dd>
             </div>
             <div>
               <dt className="text-slate-500">Live alert feed (SSE)</dt>
