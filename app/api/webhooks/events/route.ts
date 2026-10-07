@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { connectDB } from "@/lib/mongodb";
-import { Webhook, toWebhookConfig, WEBHOOK_EVENTS, WEBHOOK_STATUS, type WebhookEvent, type WebhookConfig } from "@/lib/models/Webhook";
+import { Webhook, toWebhookConfig, WEBHOOK_EVENTS, WEBHOOK_STATUS, type WebhookEvent } from "@/lib/models/Webhook";
 import type { WebhookEventName } from "@/lib/webhooks/types";
 import { dispatchEvent } from "@/lib/webhooks/websocket";
 
@@ -24,6 +24,8 @@ const ALLOWED_OUTGOING = new Set<string>([
   "Content-Type",
 ]);
 
+const WEBHOOK_SECRET = (process.env.INTELLI_WEBHOOK_SECRET ?? "").trim();
+
 function outputHeaders(headers: Headers): Headers {
   const out = new Headers();
   for (const [key, value] of headers.entries()) {
@@ -37,45 +39,30 @@ function parseReceiverId(req: NextRequest): string | null {
   return id ?? null;
 }
 
-async function runVerify(raw: Buffer, req: NextRequest): Promise<{ ok: boolean; webhook: WebhookConfig | null }> {
-  const receivers: Record<string, unknown>[] = [];
-
-  const id = parseReceiverId(req);
-  if (id) {
-    const conn = await connectDB();
-    const doc = await conn.models.Webhook?.findById(id).lean() as Record<string, unknown> | null;
-    if (doc) receivers.push(doc);
-  } else {
-    const conn = await connectDB();
-    const docs = await conn.models.Webhook?.find({ status: "enabled" }).lean() as unknown[];
-    for (const d of docs) receivers.push(d as Record<string, unknown>);
+async function runVerify(raw: Buffer, req: NextRequest): Promise<{ ok: boolean; webhookId: string | null }> {
+  if (!WEBHOOK_SECRET) {
+    console.error("[webhook] INTELLI_WEBHOOK_SECRET is not set in env.");
+    return { ok: false, webhookId: null };
   }
 
   const incoming = req.headers.get("X-Intelli-Signature") ?? "";
-  if (!incoming) return { ok: false, webhook: null };
+  if (!incoming) return { ok: false, webhookId: null };
 
-  for (const w of receivers) {
-    const expected = createHmac("sha256", w.secret as string | undefined ?? "")
-      .update(raw.toString("utf8"))
-      .digest("hex") as string;
+  const expected = createHmac("sha256", WEBHOOK_SECRET)
+    .update(raw.toString("utf8"))
+    .digest("hex") as string;
 
-    if (!expected) continue;
+  const a = Buffer.from(incoming, "ascii");
+  const b = Buffer.from(`sha256=${expected}`, "ascii");
 
-    const a = Buffer.from(incoming, "ascii");
-    const b = Buffer.from(`sha256=${expected}`, "ascii");
-    if (a.length !== b.length) continue;
-
-    if (a.length === b.length && timingSafeEqual(a, b)) {
-      return { ok: true, webhook: w as unknown as WebhookConfig };
-    }
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return { ok: false, webhookId: null };
   }
 
-  return { ok: false, webhook: null };
+  return { ok: true, webhookId: null };
 }
 
-function isAllowedEvent(event: string | undefined, channel: string | undefined, webhook: WebhookConfig | null): boolean {
-  if (!webhook || webhook.status !== "enabled") return false;
-
+function isAllowedEvent(event: string | undefined, channel: string | undefined): boolean {
   const eventKey = (event ?? "").toLowerCase();
   if (eventKey && !WEBHOOK_EVENTS.includes(eventKey as WebhookEvent)) return false;
 
@@ -184,28 +171,18 @@ export async function POST(req: NextRequest) {
     return blankResponse();
   }
 
-  const { ok, webhook } = await runVerify(raw, req);
-  if (!ok || !webhook) {
-    if (webhook?.secretStatus === "rotated") {
-      return NextResponse.json(
-        {
-          error: "Signature mismatch: the receiver secret may have been rotated.",
-          requiresSecretRefresh: true,
-          webhookId: webhook?.id,
-          targetUrl: webhook?.targetUrl,
-          events: webhook?.events,
-        },
-        { status: 401 }
-      );
-    }
+  const { ok, webhookId } = await runVerify(raw, req);
+
+  if (!ok) {
     return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
   }
 
-  if (!isAllowedEvent(req.headers.get("X-Intelli-Event") ?? "", req.headers.get("X-Intelli-Channel") ?? "", webhook)) {
+  const eventName = (req.headers.get("X-Intelli-Event") ?? "webhook.test").toLowerCase() as WebhookEventName;
+  const channel = req.headers.get("X-Intelli-Channel") ?? "";
+
+  if (!isAllowedEvent(eventName, channel)) {
     return NextResponse.json({ error: "Event not subscribed to" }, { status: 400 });
   }
-
-  const eventName = (req.headers.get("X-Intelli-Event") ?? "webhook.test").toLowerCase() as WebhookEventName;
 
   const conn = await connectDB();
   const EventModel = (conn.models.Event as any) || (conn.model("Event", {
@@ -230,7 +207,7 @@ export async function POST(req: NextRequest) {
       (req.headers.get("X-Intelli-Message-Id") ?? req.headers.get("X-Intelli-Delivery-Id") ?? "") as string,
       {}
     ),
-    webhookId: webhook.id,
+    webhookId: webhookId ?? null,
     status: "queued",
     attempts: 0,
     lastError: null,
@@ -241,19 +218,18 @@ export async function POST(req: NextRequest) {
   // Broadcast to SSE subscribers + DB outbox
   await dispatchEvent({
     event: eventName,
-    channel: req.headers.get("X-Intelli-Channel") ?? "",
+    channel,
     sender: {
       client_ref: req.headers.get("X-Intelli-Sender-Client-Ref") ?? "",
       account_id: req.headers.get("X-Intelli-Sender-Account-Id") ?? "",
     },
     receivedAt: new Date().toISOString(),
-    webhookId: webhook.id,
+    webhookId: webhookId ?? null,
     status: "accepted",
     error: null,
     requestId: deliveryId,
   });
 
-  const headers = buildSenderHeaders(req);
   return new NextResponse(
     JSON.stringify({ ok: true, status: 202, message: "Delivered" }),
     {
@@ -261,7 +237,7 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         ...Object.fromEntries(
-          Object.entries(headers).map(([k, v]) => [k, v])
+          Object.entries(buildSenderHeaders(req)).map(([k, v]) => [k, v])
         ),
       },
     }
