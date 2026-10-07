@@ -20,21 +20,14 @@
 set -e
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
-WEBHOOK_ID="${WEBHOOK_ID:-}"
-WEBHOOK_SECRET="${WEBHOOK_SECRET:-}"
+WEBHOOK_SECRET="${INTELLI_WEBHOOK_SECRET:-}"
 
-# --- 1) discover a webhook config if not provided ---
-if [ -z "$WEBHOOK_ID" ] || [ -z "$WEBHOOK_SECRET" ]; then
-  echo "> Discovering webhook configs from ${BASE_URL}/api/webhooks?action=list"
-  RESPONSE=$(curl -s -X POST "${BASE_URL}/api/webhooks?action=list" -H "Content-Type: application/json" -d '{}')
-  WEBHOOK_ID=$(echo "$RESPONSE" | node -e "let d='';try{d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).items?.[0]?.id||'';}catch(e){}console.log(d);")
-  WEBHOOK_SECRET=$(echo "$RESPONSE" | node -e "let s='';try{s=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).items?.[0]?.secret||'';}catch(e){}console.log(s);")
-  echo "  → id=${WEBHOOK_ID} secret=${WEBHOOK_SECRET:0:8}..."
-fi
-
-if [ -z "$WEBHOOK_ID" ] || [ -z "$WEBHOOK_SECRET" ]; then
-  echo "ERROR: No webhook config found and no WEBHOOK_ID/WEBHOOK_SECRET provided."
-  echo "  Set WEBHOOK_ID and WEBHOOK_SECRET (the secret stored in the DB, not the header token)."
+# --- use the env secret (single shared secret, not DB lookup) ---
+if [ -z "$WEBHOOK_SECRET" ]; then
+  echo "ERROR: INTELLI_WEBHOOK_SECRET is not set in .env or environment."
+  echo "  Add it to .env:"
+  echo "    INTELLI_WEBHOOK_SECRET=<your-secret>"
+  echo "  Then re-run the test."
   exit 1
 fi
 
@@ -54,6 +47,7 @@ echo "  X-Intelli-Channel: whatsapp"
 echo "  X-Intelli-Sender-Client-Ref: smoke-test-client"
 echo "  X-Intelli-Sender-Account-Id: smoke-test-account"
 echo "  raw body: ${PAYLOAD}"
+echo "  secret (from env): ${WEBHOOK_SECRET:0:8}..."
 echo ""
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${BASE_URL}/api/webhooks/events" \
@@ -78,3 +72,4 @@ else
   echo "FAIL — expected 202, got ${HTTP_CODE}."
   exit 1
 fi
+
